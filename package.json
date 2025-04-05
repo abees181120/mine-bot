@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "spawner": "ts-node -r tsconfig-paths/register src/scripts/auto-spawner.ts",
     "spawner:dev": "nodemon --exec ts-node -r tsconfig-paths/register src/scripts/auto-spawner.ts",
-    "pawnser:prod": "node dist/scripts/auto-spawner.js"
+    "spawner:prod": "node dist/scripts/auto-spawner.js"
   },
   "dependencies": {
     "@miner-org/mineflayer-baritone": "^0.5.0",

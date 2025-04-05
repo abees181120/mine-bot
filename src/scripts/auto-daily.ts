@@ -10,7 +10,6 @@ import { loginGrassMineServer } from '../utils/botUtil';
 import { wait } from '../utils/wait';
 import { logReward, prisma } from '../config/prisma';
 import yargs from 'yargs';
-import { p } from 'react-router/dist/development/fog-of-war-BaM-ohjc';
 import { startOfDay } from 'date-fns';
 
 const botState: {
