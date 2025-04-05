@@ -19,10 +19,10 @@ jobs:
           node-version: 18
 
       - name: 📦 Install dependencies
-        run: npm install
+        run: yarn install
 
       - name: 🏗️ Build app
-        run: npm run build
+        run: yarn build
 
       - name: 📁 Zip build folder
         run: zip -r nestjs-build.zip dist
