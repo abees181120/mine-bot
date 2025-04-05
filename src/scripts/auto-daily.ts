@@ -100,7 +100,11 @@ const handleGetDailyQuest = async (bot) => {
 
           if (!quest || !quest.requirement) {
             if (id) {
-              await prisma.dailyRewardStatus.create({
+              await prisma.dailyRewardStatus.updateMany({
+                where: {
+                  botId: id, // change to your bot id
+                  status: 'pending',
+                },
                 data: {
                   botId: id, // change to your bot id
                   status: 'skipped',
@@ -117,7 +121,11 @@ const handleGetDailyQuest = async (bot) => {
 
           if (quest.status === 'HOÀN THÀNH') {
             if (id) {
-              await prisma.dailyRewardStatus.create({
+              await prisma.dailyRewardStatus.updateMany({
+                where: {
+                  botId: id, // change to your bot id
+                  status: 'pending',
+                },
                 data: {
                   botId: id, // change to your bot id
                   status: 'skipped',
@@ -134,7 +142,11 @@ const handleGetDailyQuest = async (bot) => {
           const location = getQuestLocation(quest.requirement);
           if (!location) {
             if (id) {
-              await prisma.dailyRewardStatus.create({
+              await prisma.dailyRewardStatus.updateMany({
+                where: {
+                  botId: id, // change to your bot id
+                  status: 'pending',
+                },
                 data: {
                   botId: id, // change to your bot id
                   status: 'skipped',
