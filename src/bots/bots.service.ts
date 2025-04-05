@@ -176,116 +176,123 @@ export class BotsService {
   // }
 
   private async runNextBot() {
-    if (this.running >= this.maxConcurrent) return;
+    try {
+      if (this.running >= this.maxConcurrent) return;
 
-    const botData = await this.getNextBot();
-    if (!botData) {
-      if (this.running === 0) {
-        this.queueRunning = false;
+      const botData = await this.getNextBot();
+      if (!botData) {
+        if (this.running === 0) {
+          this.queueRunning = false;
+        }
+        return;
       }
-      return;
-    }
 
-    const { id, username, password } = botData;
+      const { id, username, password } = botData;
 
-    const isDev = process.env.NODE_ENV === 'development';
+      const isDev = process.env.NODE_ENV === 'development';
 
-    const scriptPath = isDev
-      ? path.resolve('src/scripts/auto-daily.ts')
-      : path.resolve('dist/scripts/auto-daily.js');
+      const scriptPath = isDev
+        ? path.resolve('src/scripts/auto-daily.ts')
+        : path.resolve('dist/scripts/auto-daily.js');
 
-    const args = [
-      `--id=${id}`,
-      `--username=${username}`,
-      `--password=${password}`,
-    ];
+      const args = [
+        `--id=${id}`,
+        `--username=${username}`,
+        `--password=${password}`,
+      ];
 
-    const child = fork(scriptPath, args, {
-      stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
-      execArgv: isDev ? ['-r', 'ts-node/register'] : [],
-    });
+      const child = fork(scriptPath, args, {
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+        execArgv: isDev ? ['-r', 'ts-node/register'] : [],
+      });
 
-    this.runningBots.set(username, child);
-    this.running++;
-    console.log(`🚀 Started bot: ${username} (PID ${child.pid})`);
+      this.runningBots.set(username, child);
+      this.running++;
+      process.stderr.write(`🚀 Started bot: ${username} (PID ${child.pid})`);
 
-    // Emit start
-    this.gateway.processStart(username, {
-      message: 'Bot started',
-      pid: child.pid,
-      username,
-      status: 'running',
-    });
-
-    // Log stdout
-    child.stdout?.on('data', (data) => {
-      const message = data.toString();
-      this.gateway.sendBotLog(username, {
-        message,
+      // Emit start
+      this.gateway.processStart(username, {
+        message: 'Bot started',
         pid: child.pid,
         username,
         status: 'running',
       });
-      process.stdout.write(`[${username}] ${message}`);
-    });
 
-    // Log stderr
-    child.stderr?.on('data', (data) => {
-      process.stderr.write(`[${username}] ERROR: ${data}`);
-    });
+      // Log stdout
+      child.stdout?.on('data', (data) => {
+        const message = data.toString();
+        this.gateway.sendBotLog(username, {
+          message,
+          pid: child.pid,
+          username,
+          status: 'running',
+        });
+        process.stdout.write(`[${username}] ${message}`);
+      });
 
-    // IPC communication (optional)
-    child.on('message', (msg) => {
-      console.log(`[${username}] IPC message:`, msg);
-    });
+      // Log stderr
+      child.stderr?.on('data', (data) => {
+        process.stderr.write(`[${username}] ERROR: ${data}`);
+      });
 
-    // Timeout kill sau 5 phút
-    const timeout = setTimeout(
-      async () => {
-        if (child.exitCode === null) {
-          console.log(`⏰ [${username}] Timeout 5m - Killing PID ${child.pid}`);
-          await this.prisma.dailyRewardStatus.deleteMany({
-            where: { botId: id, status: 'pending' },
-          });
+      // IPC communication (optional)
+      child.on('message', (msg) => {
+        process.stderr.write(`[${username}] IPC message: ${msg}`);
+      });
 
-          this.gateway.processKill(username, {
-            message: 'Timeout 5m',
-            pid: child.pid,
-            username,
-            status: 'stopped',
-          });
-          child.kill();
-        }
-      },
-      5 * 60 * 1000,
-    );
+      // Timeout kill sau 5 phút
+      const timeout = setTimeout(
+        async () => {
+          if (child.exitCode === null) {
+            process.stderr.write(
+              `⏰ [${username}] Timeout 5m - Killing PID ${child.pid}`,
+            );
+            await this.prisma.dailyRewardStatus.deleteMany({
+              where: { botId: id, status: 'pending' },
+            });
 
-    child.on('exit', async (code, signal) => {
-      clearTimeout(timeout);
+            this.gateway.processKill(username, {
+              message: 'Timeout 5m',
+              pid: child.pid,
+              username,
+              status: 'stopped',
+            });
+            child.kill();
+          }
+        },
+        5 * 60 * 1000,
+      );
 
-      const reason =
-        signal === 'SIGTERM'
-          ? 'killed (SIGTERM)'
-          : code === 0
-            ? 'exited normally'
-            : `exited with code ${code}`;
+      child.on('exit', async (code, signal) => {
+        clearTimeout(timeout);
 
-      console.log(`🛑 Bot ${username} ${reason}`);
+        const reason =
+          signal === 'SIGTERM'
+            ? 'killed (SIGTERM)'
+            : code === 0
+              ? 'exited normally'
+              : `exited with code ${code}`;
 
-      this.runningBots.delete(username);
+        console.log(`🛑 Bot ${username} ${reason}`);
+
+        this.runningBots.delete(username);
+        this.running = Math.max(0, this.running - 1);
+        // await this.prisma.dailyRewardStatus.deleteMany({
+        //   where: { botId: id, status: 'pending' },
+        // });
+        this.gateway.processKill(username, {
+          message: `Bot ${reason}`,
+          pid: child.pid,
+          username,
+          status: 'stopped',
+        });
+
+        this.runNextBot();
+      });
+    } catch (error) {
+      console.error('Error in runNextBot:', error);
       this.running = Math.max(0, this.running - 1);
-      await this.prisma.dailyRewardStatus.deleteMany({
-        where: { botId: id, status: 'pending' },
-      });
-      this.gateway.processKill(username, {
-        message: `Bot ${reason}`,
-        pid: child.pid,
-        username,
-        status: 'stopped',
-      });
-
-      this.runNextBot();
-    });
+    }
   }
 
   async stopBot(username: string): Promise<{ message: string }> {
