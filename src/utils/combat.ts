@@ -101,7 +101,7 @@ export function startCombatLoop(bot: Bot, location: Vec3) {
         bot.lookAt = async () => Promise.resolve();
         bot.pvp.attackRange = 6;
         bot.pvp.followRange = 6;
-        bot.pvp.attack(target);
+        bot.pvp.attack(target as any);
         bot.pvp.movements = undefined;
       }
     }
