@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { KeyType } from '../enum/KeyType';
+import { startOfDay } from 'date-fns';
 
 export const prisma = new PrismaClient();
 export const logReward = async (
@@ -54,7 +55,7 @@ export const logReward = async (
     },
     data: {
       status: 'rewarded',
-      date: new Date(),
+      date: startOfDay(new Date()),
     },
   });
   const dailyRewards = await prisma.dailyRewards.create({

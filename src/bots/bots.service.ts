@@ -5,6 +5,7 @@ import { fork, spawn } from 'child_process';
 import { QueryRewardDto } from './dto/query-reward.dto';
 import { BotsGateway } from './bots.gateway';
 import * as path from 'path';
+import { startOfDay } from 'date-fns';
 
 @Injectable()
 export class BotsService {
@@ -42,7 +43,7 @@ export class BotsService {
     await this.prisma.dailyRewardStatus.create({
       data: {
         botId: bot.id,
-        date: new Date(),
+        date: startOfDay(new Date()),
         status: 'pending',
         type: 1, // 1 là daily quest
       },

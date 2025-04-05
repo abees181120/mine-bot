@@ -11,6 +11,7 @@ import { wait } from '../utils/wait';
 import { logReward, prisma } from '../config/prisma';
 import yargs from 'yargs';
 import { p } from 'react-router/dist/development/fog-of-war-BaM-ohjc';
+import { startOfDay } from 'date-fns';
 
 const botState: {
   isDailySuccess: boolean;
@@ -108,7 +109,7 @@ const handleGetDailyQuest = async (bot) => {
                 data: {
                   botId: id, // change to your bot id
                   status: 'skipped',
-                  date: new Date(),
+                  date: startOfDay(new Date()),
                   type: 1,
                 },
               });
@@ -129,7 +130,7 @@ const handleGetDailyQuest = async (bot) => {
                 data: {
                   botId: id, // change to your bot id
                   status: 'skipped',
-                  date: new Date(),
+                  date: startOfDay(new Date()),
                   type: 1,
                 },
               });
@@ -150,7 +151,7 @@ const handleGetDailyQuest = async (bot) => {
                 data: {
                   botId: id, // change to your bot id
                   status: 'skipped',
-                  date: new Date(),
+                  date: startOfDay(new Date()),
                   type: 1,
                 },
               });
