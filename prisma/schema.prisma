@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Bots {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @db.Date @default(now())
+  name      String
+  password  String
+  updatedAt DateTime @db.Date @updatedAt
+  @@map("bots")
+}
+
+model DailyRewardStatus {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  botId     String
+  createdAt DateTime @db.Date @default(now())
+  date      DateTime @db.Date
+  status    String
+  type      Int 
+  updatedAt DateTime @db.Date @updatedAt
+
+  @@map("daily_reward_status")
+}
+
+model DailyRewards {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  botId        String
+  createdAt    DateTime @db.Date @default(now())
+  dateRewarded DateTime @db.Date @default(now())
+  description  String
+  inStock      Int // 0 = no, 1 = yes
+  name         String
+  star         Int
+  type         Int // 0 = weapon, 1 = armor, 2 = jewelry, -1 = no reward
+  updatedAt    DateTime @db.Date @updatedAt
+  @@map("daily_rewards")
+}
