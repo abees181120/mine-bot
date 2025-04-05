@@ -2,7 +2,6 @@ import { createBot } from 'mineflayer';
 import { loginGrassMineServer } from '../utils/botUtil';
 import { wait } from '../utils/wait';
 import { getNearbyBlocks } from 'src/utils/nearBy';
-import * as inventoryViewer from 'mineflayer-web-inventory';
 
 const bootstrap = async () => {
   const username = 'abees1';
@@ -15,7 +14,6 @@ const bootstrap = async () => {
   const isLogin = await loginGrassMineServer(bot, username, 'abeesdev', false);
 
   console.log('isLogin', isLogin);
-  inventoryViewer(bot);
 
   if (isLogin) {
     bot.on('kicked', (reason) => {
