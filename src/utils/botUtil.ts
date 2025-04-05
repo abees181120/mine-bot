@@ -15,8 +15,9 @@ export function loginGrassMineServer(
   bot: Bot,
   username: string,
   password: string,
+  kill = true,
 ): Promise<boolean> {
-  const onMessage = (message: any) => {
+  const onMessage = (message: any, resolve) => {
     const msg = message.toString();
     // console.log(`[${username}] ${msg}`);
     if (
@@ -39,13 +40,17 @@ export function loginGrassMineServer(
     const messageJoin = `[Dungeons RPG] ${username} vừa vào máy chủ`;
 
     if (msg.includes(messageJoin)) {
-      bot.chat('/kill');
-      bot.once('windowOpen', async (window) => {
-        if (window.title.includes('TỰ HỦY')) {
-          bot.clickWindow(4, 0, 0);
-          console.log(`🟢 [BOT: ${username}] Clicked TỰ HỦY window.`);
-        }
-      });
+      if (kill) {
+        bot.chat('/kill');
+        bot.once('windowOpen', async (window) => {
+          if (window.title.includes('TỰ HỦY')) {
+            bot.clickWindow(4, 0, 0);
+            console.log(`🟢 [BOT: ${username}] Clicked TỰ HỦY window.`);
+          }
+        });
+      } else {
+        resolve(true);
+      }
     }
   };
 
@@ -63,7 +68,7 @@ export function loginGrassMineServer(
     console.log(`🟢 [BOT: ${username}] Logging in...`);
   };
   return new Promise((resolve, reject) => {
-    bot.on('message', onMessage);
+    bot.on('message', (message) => onMessage(message, resolve));
 
     bot.once('windowOpen', onWindowOpen);
 
