@@ -240,22 +240,26 @@ export class BotsService {
 
     // Timeout kill sau 5 phút
     const timeout = setTimeout(
-      () => {
+      async () => {
         if (child.exitCode === null) {
           console.log(`⏰ [${username}] Timeout 5m - Killing PID ${child.pid}`);
-          child.kill();
+          await this.prisma.dailyRewardStatus.deleteMany({
+            where: { botId: id, status: 'pending' },
+          });
+
           this.gateway.processKill(username, {
             message: 'Timeout 5m',
             pid: child.pid,
             username,
             status: 'stopped',
           });
+          child.kill();
         }
       },
       5 * 60 * 1000,
     );
 
-    child.on('exit', (code, signal) => {
+    child.on('exit', async (code, signal) => {
       clearTimeout(timeout);
 
       const reason =
@@ -269,7 +273,9 @@ export class BotsService {
 
       this.runningBots.delete(username);
       this.running = Math.max(0, this.running - 1);
-
+      await this.prisma.dailyRewardStatus.deleteMany({
+        where: { botId: id, status: 'pending' },
+      });
       this.gateway.processKill(username, {
         message: `Bot ${reason}`,
         pid: child.pid,
