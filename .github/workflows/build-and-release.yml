@@ -24,8 +24,9 @@ jobs:
       - name: 🏗️ Build app
         run: yarn build
 
-      - name: 📁 Zip build folder
-        run: zip -r nestjs-build.zip dist
+      - name: 📁 Zip build + required files
+        run: |
+          zip -r nestjs-build.zip dist package.json tsconfig.json yarn.lock tsconfig.build.json
 
       - name: 🚀 Upload build to release
         uses: softprops/action-gh-release@v1
