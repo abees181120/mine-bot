@@ -13,13 +13,16 @@ export class BotsService {
     private gateway: BotsGateway,
   ) {}
 
-  private maxConcurrent = 2;
+  private maxConcurrent = process.env.MAX_CONCURRENT
+    ? +process.env.MAX_CONCURRENT
+    : 1;
   private running = 0;
   private queueRunning = false;
   private runningBots: Map<string, ReturnType<typeof spawn>> = new Map();
   private masterTradingBot: ReturnType<typeof spawn> | null = null;
 
   private async getNextBot() {
+    console.log('maxConcurrent', this.maxConcurrent);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
