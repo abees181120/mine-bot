@@ -15,7 +15,10 @@ const questLocations = {
   },
   'Giết 30 Bò Sữa (Đảo 1)': {
     warp: 'dao1',
-    locations: [[1242, 79, 923]],
+    locations: [
+      [1242, 79, 923],
+      [1224, 82, 931],
+    ],
   },
   'Giết 30 Mèo Cát (Đảo 2)': {
     warp: 'dao2',
