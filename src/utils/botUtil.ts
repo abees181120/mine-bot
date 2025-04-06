@@ -16,6 +16,7 @@ export function loginGrassMineServer(
   username: string,
   password: string,
   kill = true,
+  register = false,
 ): Promise<boolean> {
   const onMessage = (message: any, resolve) => {
     const msg = message.toString();
@@ -27,6 +28,11 @@ export function loginGrassMineServer(
     ) {
       console.log(`🟢 [BOT: ${username}] Logging in...`);
       bot.chat(`/l ${password}`);
+    }
+
+    if (msg.includes("Sử dụng lệnh '/register <mật khẩu>") && register) {
+      console.log(`🟢 [BOT: ${username}] Registering...`);
+      bot.chat(`/register ${password} ${password}`);
     }
 
     if (msg.includes('Chào mừng bạn đã đến với GrassMineVN PE')) {
