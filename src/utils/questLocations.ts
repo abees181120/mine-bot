@@ -30,8 +30,8 @@ const questLocations = {
   'Giết 30 Thây Ma (Đảo 3)': {
     warp: 'dao3',
     locations: [
-      [55, 66, -10],
-      [54, 67, -23],
+      [56, 66, -13],
+      [13, 67, -43],
     ],
   },
   'Giết 30 Thây Ma Chết Đuối (Đảo 3)': {
