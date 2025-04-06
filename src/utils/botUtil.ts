@@ -29,8 +29,6 @@ export function loginGrassMineServer(
       bot.chat(`/l ${password}`);
     }
 
-    console.log(`[${username}] ${msg}`);
-
     if (msg.includes("Sử dụng lệnh '/register <mật khẩu>") && register) {
       console.log(`🟢 [BOT: ${username}] Registering...`);
       bot.chat(`/register ${password} ${password}`);
