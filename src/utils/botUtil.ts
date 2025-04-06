@@ -20,7 +20,6 @@ export function loginGrassMineServer(
 ): Promise<boolean> {
   const onMessage = (message: any, resolve) => {
     const msg = message.toString();
-    // console.log(`[${username}] ${msg}`);
     if (
       msg.includes(
         `Sử dụng lệnh '/L <mật khẩu đã đăng ký trước đó>' để đăng nhập`,

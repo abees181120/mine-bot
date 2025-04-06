@@ -296,7 +296,13 @@ async function main() {
   bot.loadPlugin(pathfinder);
   bot.loadPlugin(pvp);
 
-  const isLogin = await loginGrassMineServer(bot, username, password);
+  const isLogin = await loginGrassMineServer(
+    bot,
+    username,
+    password,
+    true,
+    false,
+  );
 
   if (isLogin) {
     handleGetDailyQuest(bot);

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { decrypt } from '../utils/crypto';
 import { PrismaService } from '../prisma.service';
 import { fork, spawn } from 'child_process';
@@ -8,11 +13,16 @@ import * as path from 'path';
 import { startOfDay } from 'date-fns';
 
 @Injectable()
-export class BotsService {
+export class BotsService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private prisma: PrismaService,
     private gateway: BotsGateway,
   ) {}
+  onModuleInit() {
+    this.startQueue().catch((error) => {
+      console.error('Error starting bot queue:', error);
+    });
+  }
 
   private maxConcurrent = process.env.MAX_CONCURRENT
     ? +process.env.MAX_CONCURRENT
@@ -180,6 +190,7 @@ export class BotsService {
       if (this.running >= this.maxConcurrent) return;
 
       const botData = await this.getNextBot();
+
       if (!botData) {
         if (this.running === 0) {
           this.queueRunning = false;
@@ -190,6 +201,8 @@ export class BotsService {
       const { id, username, password } = botData;
 
       const isDev = process.env.NODE_ENV === 'development';
+
+      console.log('isDev', isDev);
 
       const scriptPath = isDev
         ? path.resolve('src/scripts/auto-daily.ts')
