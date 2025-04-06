@@ -19,7 +19,12 @@ async function registerBot(username: string) {
   );
   console.log('isLogin', isLogin);
 
-  if (!isLogin) return;
+  if (!isLogin) {
+    console.log(`Failed to login with username: ${username}`);
+    bot.quit();
+    createBotWithRandomName(); // Retry with new name
+    return;
+  }
 
   bot.on('kicked', (reason) => {
     console.log(`Bot kicked: ${reason}`);

@@ -30,6 +30,8 @@ export function loginGrassMineServer(
       bot.chat(`/l ${password}`);
     }
 
+    console.log(`[${username}] ${msg}`);
+
     if (msg.includes("Sử dụng lệnh '/register <mật khẩu>") && register) {
       console.log(`🟢 [BOT: ${username}] Registering...`);
       bot.chat(`/register ${password} ${password}`);
@@ -77,6 +79,10 @@ export function loginGrassMineServer(
     bot.on('message', (message) => onMessage(message, resolve));
 
     bot.once('windowOpen', onWindowOpen);
+
+    setTimeout(() => {
+      resolve(false);
+    }, 300000); // 5 minutes
 
     bot.once('death', () => {
       setTimeout(() => {
