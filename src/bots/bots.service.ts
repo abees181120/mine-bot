@@ -6,11 +6,11 @@ import {
 } from '@nestjs/common';
 import { decrypt } from '../utils/crypto';
 import { PrismaService } from '../prisma.service';
-import { fork, spawn } from 'child_process';
 import { QueryRewardDto } from './dto/query-reward.dto';
 import { BotsGateway } from './bots.gateway';
 import * as path from 'path';
 import { startOfDay } from 'date-fns';
+import { spawn, ChildProcessWithoutNullStreams, fork } from 'child_process';
 
 @Injectable()
 export class BotsService implements OnModuleInit, OnModuleDestroy {
@@ -190,40 +190,37 @@ export class BotsService implements OnModuleInit, OnModuleDestroy {
       if (this.running >= this.maxConcurrent) return;
 
       const botData = await this.getNextBot();
-
       if (!botData) {
-        if (this.running === 0) {
-          this.queueRunning = false;
-        }
+        if (this.running === 0) this.queueRunning = false;
         return;
       }
 
       const { id, username, password } = botData;
-
       const isDev = process.env.NODE_ENV === 'development';
 
-      console.log('isDev', isDev);
-
+      const command = isDev ? 'ts-node' : 'node';
       const scriptPath = isDev
         ? path.resolve('src/scripts/auto-daily.ts')
         : path.resolve('dist/scripts/auto-daily.js');
 
       const args = [
+        scriptPath,
         `--id=${id}`,
         `--username=${username}`,
         `--password=${password}`,
       ];
 
-      const child = fork(scriptPath, args, {
-        stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
-        execArgv: isDev ? ['-r', 'ts-node/register'] : [],
+      const child: ChildProcessWithoutNullStreams = spawn(command, args, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        shell: process.platform === 'win32', // fix for Windows
+        cwd: process.cwd(),
+        env: process.env,
       });
 
       this.runningBots.set(username, child);
       this.running++;
-      process.stderr.write(`🚀 Started bot: ${username} (PID ${child.pid})`);
+      console.log(`🚀 Started bot: ${username} (PID ${child.pid})`);
 
-      // Emit start
       this.gateway.processStart(username, {
         message: 'Bot started',
         pid: child.pid,
@@ -231,8 +228,36 @@ export class BotsService implements OnModuleInit, OnModuleDestroy {
         status: 'running',
       });
 
-      // Log stdout
-      child.stdout?.on('data', (data) => {
+      // ⏱️ Timeout cứng sau 5 phút
+      const timeout = setTimeout(
+        async () => {
+          if (!child.killed) {
+            console.warn(
+              `⏰ [${username}] Timeout 5m - Killing PID ${child.pid}`,
+            );
+
+            await this.prisma.dailyRewardStatus.deleteMany({
+              where: { botId: id, status: 'pending' },
+            });
+
+            child.kill('SIGTERM');
+
+            this.gateway.processKill(username, {
+              message: 'Timeout 5m',
+              pid: child.pid,
+              username,
+              status: 'stopped',
+            });
+
+            this.runningBots.delete(username);
+            this.running = Math.max(0, this.running - 1);
+            this.runNextBot();
+          }
+        },
+        5 * 60 * 1000,
+      );
+
+      child.stdout.on('data', (data) => {
         const message = data.toString();
         this.gateway.sendBotLog(username, {
           message,
@@ -243,38 +268,10 @@ export class BotsService implements OnModuleInit, OnModuleDestroy {
         process.stdout.write(`[${username}] ${message}`);
       });
 
-      // Log stderr
-      child.stderr?.on('data', (data) => {
-        process.stderr.write(`[${username}] ERROR: ${data}`);
+      child.stderr.on('data', (data) => {
+        const message = data.toString();
+        process.stderr.write(`[${username}] ERROR: ${message}`);
       });
-
-      // IPC communication (optional)
-      child.on('message', (msg) => {
-        process.stderr.write(`[${username}] IPC message: ${msg}`);
-      });
-
-      // Timeout kill sau 5 phút
-      const timeout = setTimeout(
-        async () => {
-          if (child.exitCode === null) {
-            process.stderr.write(
-              `⏰ [${username}] Timeout 5m - Killing PID ${child.pid}`,
-            );
-            await this.prisma.dailyRewardStatus.deleteMany({
-              where: { botId: id, status: 'pending' },
-            });
-
-            this.gateway.processKill(username, {
-              message: 'Timeout 5m',
-              pid: child.pid,
-              username,
-              status: 'stopped',
-            });
-            child.kill();
-          }
-        },
-        5 * 60 * 1000,
-      );
 
       child.on('exit', async (code, signal) => {
         clearTimeout(timeout);
@@ -290,9 +287,7 @@ export class BotsService implements OnModuleInit, OnModuleDestroy {
 
         this.runningBots.delete(username);
         this.running = Math.max(0, this.running - 1);
-        // await this.prisma.dailyRewardStatus.deleteMany({
-        //   where: { botId: id, status: 'pending' },
-        // });
+
         this.gateway.processKill(username, {
           message: `Bot ${reason}`,
           pid: child.pid,
