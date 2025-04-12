@@ -52,7 +52,6 @@ const bootstrap = async () => {
 
     setTimeout(() => {
       bot.chat('/trade abees5');
-      console.log(`🟢 [${username}] Clicked TỰ HỦY window.`);
     }, 3000);
 
     bot.on('message', async (message) => {
