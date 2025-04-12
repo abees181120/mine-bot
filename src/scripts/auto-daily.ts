@@ -289,6 +289,7 @@ async function main() {
     host: server,
     username: username,
     version: '1.18.2',
+    checkTimeoutInterval: 60000,
   });
 
   prisma.$connect();
