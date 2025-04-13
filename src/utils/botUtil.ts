@@ -73,6 +73,9 @@ export function loginGrassMineServer(
     console.log(`🟢 [BOT: ${username}] Logging in...`);
   };
   return new Promise((resolve, reject) => {
+    bot.on('spawn', () => {
+      console.log(`🟢 [BOT: ${username}] Spawned.`);
+    });
     bot.on('message', (message) => onMessage(message, resolve));
 
     bot.once('windowOpen', onWindowOpen);

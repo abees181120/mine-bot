@@ -114,7 +114,7 @@ const handleGetDailyQuest = async (bot) => {
               });
             }
 
-            console.log('quit');
+            console.log('quit no quest');
             bot.quit();
             return process.exit(0);
           }
@@ -134,7 +134,7 @@ const handleGetDailyQuest = async (bot) => {
                 },
               });
             }
-            console.log('quit');
+            console.log('quit success');
             bot.quit();
             return process.exit(0);
           }
@@ -155,7 +155,7 @@ const handleGetDailyQuest = async (bot) => {
                 },
               });
             }
-            console.log('quit');
+            console.log('quit no location');
             bot.quit();
             return process.exit(0);
           }

@@ -8,6 +8,7 @@ const bootstrap = async () => {
     host: 'grassmine.vn',
     username: 'abees5',
     version: '1.18.2',
+    checkTimeoutInterval: 60000,
   });
 
   const isLogin = await loginGrassMineServer(bot, username, 'abeesdev');
@@ -19,6 +20,14 @@ const bootstrap = async () => {
       bot.quit();
       process.exit(0);
     });
+
+    await wait(500); // Wait for the bot to process the command
+    for (let i = 0; i < 2; i++) {
+      bot.setControlState('back', true);
+      await wait(200); // Move back for 200ms
+      bot.setControlState('back', false);
+      await wait(100); // Pause briefly between steps
+    }
 
     bot.on('message', (message) => {
       const msg = message.toString();
