@@ -73,6 +73,14 @@ const bootstrap = async () => {
             bot.clickWindow(15, 0, 0);
             await wait(1000);
           }
+
+          bot.chat('/key');
+          await wait(1000);
+          const window3 = bot.currentWindow;
+          if (window3) {
+            bot.clickWindow(3, 1, 0);
+            await wait(1000);
+          }
         }
       } catch (err) {
         console.error('❌ Error interacting with spawner:', err);

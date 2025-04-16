@@ -290,6 +290,11 @@ async function main() {
     username: username,
     version: '1.18.2',
     checkTimeoutInterval: 60000,
+    fakeHost: server,
+    closeTimeout: 60000,
+    colorsEnabled: true,
+    logErrors: true,
+    profilesFolder: './profiles',
   });
 
   prisma.$connect();
