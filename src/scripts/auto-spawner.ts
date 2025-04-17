@@ -74,13 +74,9 @@ const bootstrap = async () => {
             await wait(1000);
           }
 
-          bot.chat('/key');
-          await wait(1000);
-          const window3 = bot.currentWindow;
-          if (window3) {
-            bot.clickWindow(2, 1, 0);
-            await wait(1000);
-          }
+          const money = Math.floor(Math.random() * 1000000);
+
+          bot.chat('/pay ABeess ' + money);
         }
       } catch (err) {
         console.error('❌ Error interacting with spawner:', err);
