@@ -89,10 +89,6 @@ const bootstrap = async () => {
       }
     }, 5000); // 👈 tăng thời gian một chút để tránh spam (có thể chỉnh lại 1500–3000ms)
 
-    bot.on('windowOpen', (window) => {
-      console.log(`🪟 [${username}] Window open: ${window.title}`);
-    });
-
     let isTrading = false;
 
     bot.on('death', () => {
