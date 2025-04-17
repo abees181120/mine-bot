@@ -78,7 +78,7 @@ const bootstrap = async () => {
           await wait(1000);
           const window3 = bot.currentWindow;
           if (window3) {
-            bot.clickWindow(3, 1, 0);
+            bot.clickWindow(2, 1, 0);
             await wait(1000);
           }
         }
