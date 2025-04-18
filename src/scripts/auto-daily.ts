@@ -74,7 +74,7 @@ const server = argv.server || 'grassmine.vn';
 const id = argv.id || null;
 
 const handleGetDailyQuest = async (bot) => {
-  setInterval(() => {
+  setInterval(async () => {
     if (!bot || !bot.entity || !bot.entity.position || botState.isDailySuccess)
       return;
 
@@ -89,6 +89,17 @@ const handleGetDailyQuest = async (bot) => {
     const respawnDistance = currentPos.distanceTo(respawnPos);
 
     if (!botState.isStartDaily && respawnDistance < 10) {
+      const randomGoBlock = Math.floor(Math.random() * 2) + 1;
+      const directions = ['forward', 'back', 'left', 'right'];
+      const randomDirection =
+        directions[Math.floor(Math.random() * directions.length)];
+      for (let i = 0; i < randomGoBlock; i++) {
+        bot.setControlState(randomDirection, true);
+        await wait(200); // Move in the random direction for 200ms
+        bot.setControlState(randomDirection, false);
+        await wait(100); // Pause briefly between steps
+      }
+
       bot.chat('/dailyquests');
       botState.lastDailyCheck = currentTime;
       bot.once('windowOpen', async (window) => {
